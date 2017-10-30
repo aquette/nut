@@ -126,11 +126,6 @@ static char * serial_ports = NULL;
 
 #ifdef HAVE_PTHREAD
 static pthread_t thread[TYPE_END];
-sem_t semaphore;
-
-sem_t * nutscan_semaphore() {
-    return &semaphore;
-}
 
 static void * run_usb(void * arg)
 {
