@@ -868,18 +868,80 @@ int cmdset_status_disable(void)
 	return 0;
 }
 
+/* returns a handle to a random device upon success
+ * -1 otherwise */
+static int nut_random_init(void)
+{
+	int random_dev = -1;
+
+#if defined(_WIN32)
+	/* Address the windows case */
+#else
+	/* most optimal, non blocking, always fed.
+	 * available on Linux, Apple and FreeBSD */
+	random_dev = open("/dev/urandom", O_RDONLY);
+	if (random_dev < 0) {
+		/* fallback, more widely available but not optimal */
+		random_dev = open("/dev/random", O_RDONLY);
+	}
+#endif
+	return random_dev;
+}
+
+/* return the size read */
+static int nut_random_get(int random_dev, void *data, int datalen)
+{
+	int ret = 0;
+
+#if defined(_WIN32)
+	/* Address the windows case */
+#else
+	if(random_dev > -1) {
+		ret = read(random_dev, data, datalen);
+	}
+	else {
+		/* otherwise, we'll fallback to rand() */
+		uint8_t *ldata = data; /* FIXME: best way to deal with variables size here? */
+		*ldata = (unsigned)rand() + (unsigned)rand();
+		ret = datalen;
+	}
+#endif
+	return ret;
+}
+
+static void nut_random_cleanup(int random_dev)
+{
+#if defined(_WIN32)
+	/* Address the windows case */
+#else
+	if (random_dev > 0)
+		close(random_dev);
+#endif
+}
+
 /* UUID v4 basic implementation
  * Note: 'dest' must be at least `UUID4_LEN` long */
 int nut_uuid_v4(char *uuid_str)
 {
 	size_t		i;
-	uint8_t nut_uuid[UUID4_BYTESIZE];
+	uint8_t 	nut_uuid[UUID4_BYTESIZE];
+	int			random_dev = -1;
 
 	if (!uuid_str)
 		return 0;
 
-	for (i = 0; i < UUID4_BYTESIZE; i++)
-		nut_uuid[i] = (unsigned)rand() + (unsigned)rand();
+	memset(nut_uuid, 0, UUID4_BYTESIZE);
+
+	random_dev = nut_random_init();
+printf("random_dev returned %i\n", random_dev);
+
+	for (i = 0; i < UUID4_BYTESIZE; i++) {
+		if (nut_random_get(random_dev, (void *)&nut_uuid[i], 1) != 1) {
+			return 0;
+		}
+	}
+
+	nut_random_cleanup(random_dev);
 
 	/* set variant and version */
 	nut_uuid[6] = (nut_uuid[6] & 0x0F) | 0x40;
