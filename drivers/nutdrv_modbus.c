@@ -53,11 +53,43 @@ upsdrv_info_t upsdrv_info = {
 	{ NULL }
 };
 
+char *mb_read_value(int register_nb, int size, )
+{
+	uint16_t tab_reg[64];
+	int ret;
+	char mfr[128];
+
+	upsdebugx(2, "mb_read_mfr");
+
+	memset (mfr, 0, 128);
+
+	//int modbus_read_registers(modbus_t *ctx, int addr, int nb, uint16_t *dest);
+	//ret = modbus_read_registers(ctx, 0x600, 8, tab_reg);
+	//int modbus_read_input_registers(modbus_t *ctx, int addr, int nb, uint16_t *dest);
+	ret = modbus_read_registers(ctx, 1536, 8, tab_reg);
+	if (ret == -1)
+		upsdebugx(1, "Error reading register 1536: %s", modbus_strerror(errno));
+	else {
+		upsdebugx(1, "Read register 1536 successfully");
+
+		for (int i = 0; i < ret; i++) {
+			if (tab_reg[i] != 0) {
+				mfr[i * 2] = MODBUS_GET_HIGH_BYTE(tab_reg[i]);
+				mfr[(i * 2) + 1] = MODBUS_GET_LOW_BYTE(tab_reg[i]);
+			}
+		}
+		upsdebugx(1, "MFR: %s", mfr);
+		dstate_setinfo ("device.mfr", mfr);
+	}
+	return NULL;
+}
 void upsdrv_initinfo(void)
 {
 	upsdebugx(2, "upsdrv_initinfo");
 
 	/* try to detect the device here - call fatal_with_errno(EXIT_FAILURE, ) if it fails */
+
+	mb_read_mfr();
 
 	/* 1/ Open the NUT Modbus definition file and load the data
 	 * 2/ Iterate through these data and call dstate_setinfo */
@@ -74,6 +106,8 @@ void upsdrv_initinfo(void)
 void upsdrv_updateinfo(void)
 {
 	upsdebugx(2, "upsdrv_updateinfo");
+
+	mb_read_mfr();
 
 	/* int flags; */
 	/* char temp[256]; */
@@ -193,10 +227,11 @@ void upsdrv_initups(void)
 		if (ctx == NULL)
 			fatalx(EXIT_FAILURE, "Unable to create the libmodbus context");
 	}
-	/* else {
-		 * upscli_splitaddr(device_path[0] ? device_path[0] : "localhost", &hostname, &port
-		upsdebugx(2, "upsdrv_initups: TCP (network) device");
-		ctx = modbus_new_tcp(device_path, 1502);
+	else {
+		/* FIXME: upscli_splitaddr(device_path[0] ? device_path[0] : "localhost", &hostname, &port */
+		upsdebugx(2, "upsdrv_initups: TCP (network) device %s", device_path);
+		//ctx = modbus_new_tcp(device_path, 502);
+		ctx = modbus_new_tcp_pi(device_path, "502");
 		if (ctx == NULL)
 			fatalx(EXIT_FAILURE, "Unable to create the libmodbus context");
 
@@ -204,8 +239,23 @@ void upsdrv_initups(void)
 			modbus_free(ctx);
 			fatalx(EXIT_FAILURE, "Connection failed: %s\n", modbus_strerror(errno));
 		}
+		else
+			upsdebugx(2, "upsdrv_initups: successfully connected to TCP (network) device");
 	}
-	*/
+
+	modbus_set_response_timeout(ctx, 2, 0);
+
+	uint32_t old_response_to_sec;
+	uint32_t old_response_to_usec;
+	modbus_get_response_timeout(ctx, &old_response_to_sec, &old_response_to_usec);
+	upsdebugx(2, "response timeout: %i / %i", old_response_to_sec, old_response_to_usec);
+	modbus_set_debug(ctx, TRUE);
+	modbus_set_error_recovery(ctx,
+							  MODBUS_ERROR_RECOVERY_LINK |
+							  MODBUS_ERROR_RECOVERY_PROTOCOL);
+
+	modbus_set_slave(ctx, 1);
+	mb_read_mfr();
 
 	/* don't try to detect the device here */
 }
