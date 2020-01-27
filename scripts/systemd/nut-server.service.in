@@ -13,7 +13,9 @@ Wants=nut-driver.target
 #   [Unit]
 #   Requires=network-online.target
 #   After=network-online.target
-Requires=network.target
+Requires=network.target fty-license-accepted.service
+BindsTo=fty-license-accepted.service
+After=fty-license-accepted.service
 Before=nut-monitor.service
 PartOf=nut.target
 
