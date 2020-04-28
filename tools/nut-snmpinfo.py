@@ -25,13 +25,13 @@ import re
 import sys
 import os
 
-TOP_SRCDIR = os.getenv('TOP_SRCDIR');
+TOP_SRCDIR = os.getenv('TOP_SRCDIR')
 if TOP_SRCDIR is None:
-    TOP_SRCDIR="..";
+    TOP_SRCDIR=".."
 
-TOP_BUILDDIR = os.getenv('TOP_BUILDDIR');
+TOP_BUILDDIR = os.getenv('TOP_BUILDDIR')
 if TOP_BUILDDIR is None:
-    TOP_BUILDDIR="..";
+    TOP_BUILDDIR=".."
 
 output_file_name = TOP_BUILDDIR + "/tools/nut-scanner/nutscan-snmp.c"
 output_file = open(output_file_name,'w')
@@ -44,7 +44,7 @@ def expand_define(filename,constant):
 		if constant in line and "#define" in line:
 			line_without_carriage_return  = re.sub("[\n\r]", "", line)
 			line_with_single_blank = re.sub("[ \t]+", " ", line_without_carriage_return)
-			define_line = line_with_single_blank.split(" ");
+			define_line = line_with_single_blank.split(" ")
 			#define_line[0] = "#define"
 			#define_line[1] = const name
 			#define_line[2...] = const value (may be other const name)
@@ -56,7 +56,7 @@ def expand_define(filename,constant):
 						clean_elem = re.sub("\"", "", elem)
 						ret_line = ret_line + clean_elem
 					else:
-						ret_line = ret_line + expand_define(filename,elem);
+						ret_line = ret_line + expand_define(filename,elem)
 	return ret_line
 
 
