@@ -1,4 +1,4 @@
-/* carel-bluebox-cooling-mib.c - subdriver to monitor SNMP Cooling devices with Carel communication in NUT
+/* carel-bluebox-cooling-mib.c - subdriver to monitor Carel-BlueBox-cooling SNMP devices with NUT
  *
  *  Copyright (C)
  *  2011 - 2020	Arnaud Quette <arnaud.quette@free.fr>
@@ -28,10 +28,18 @@
 
 #define CAREL_BLUEBOX_COOLING_OID_MODEL_NAME ".1.3.6.1.4.1.9839.1.2.0"
 
+/* other definitions */
+/* FIXME: doubt on the values! */
+#define DO_OFF 0
+#define DO_ON  1
+
 static info_lkp_t status_info[] = {
-	{ 0, "OFF" },
-	{ 1, "" },    /* init */
-	{ 2, "OL" },
+	{ 0, "on" },
+	{ 1, "off" },
+	{ 2, "off" },     /* off from digital input */
+	{ 3, "off" },     /* off from superv */
+	{ 4, "off" },     /* off from alarm */
+	{ 5, "standby" },
 	{ 0, NULL }
 };
 
@@ -43,39 +51,13 @@ static info_lkp_t device_agent_info[] = {
 /* CAREL_COOLING Snmp2NUT lookup table */
 static snmp_info_t carel_bluebox_cooling_mib[] = {
 
-/* Data format:
- * { info_type, info_flags, info_len, OID, dfl, flags, oid2info },
- *
- *	info_type:	NUT INFO_ or CMD_ element name
- *	info_flags:	flags to set in addinfo
- *	info_len:	length of strings if ST_FLAG_STRING, multiplier otherwise
- *	OID: SNMP OID or NULL
- *	dfl: default value
- *	flags: snmp-ups internal flags (FIXME: ...)
- *	oid2info: lookup table between OID and NUT values
- *
- */
-
 /*
----
-Interesting data:
-=================
-
-
-
-   	-- 1.3.6.1.4.1.9839.2.1.2.48
-        setpoint-lcp  OBJECT-TYPE
- 
-----------
-
 https://github.com/librenms/librenms/blob/master/mibs/carel/KELVIN-pCOWeb-Chiller-MIB
 
 Supported devices:
 * CRAC mitsubishi i-NEXT_DX (Carel Bluebox DBBB0mcbMF)
 	For the air conditioning system NutKao use:
 	https://library.mitsubishielectric.co.uk/pdf/book/i-NEXT_DX_Installation__Use_and_Maintenance_Manual__Z_18_7_EN#page-1
-
-* RITTAL LCP DX (kelvin-pCOWeb-LCP-DX)
 
 
 */
@@ -94,19 +76,25 @@ Supported devices:
 	{ "device.type", ST_FLAG_STRING, SU_INFOSIZE, NULL, "cooling",
 		SU_FLAG_STATIC | SU_FLAG_ABSENT | SU_FLAG_OK, NULL },
 
+	/* Machine status */
+	/* stato-macchina.0 = INTEGER: 1 */
+	{ "device.status", 0, 1, ".1.3.6.1.4.1.9839.2.1.3.1.0", NULL, SU_FLAG_OK, &status_info[0] },
+
 	/* UPS collection */
+	/* FIXME: Rittal
 	{ "device.status", ST_FLAG_STRING, SU_INFOSIZE, ".1.3.6.1.4.1.9839.2.0.10.1.0", NULL,
 		SU_FLAG_OK, &status_info[0] },
+	*/
 
 /*
-1.3.6.1.4.1.9839.2.1.2.2.0|2|218
-1.3.6.1.4.1.9839.2.1.2.3.0|2|0
+1.3.6.1.4.1.9839.2.1.2.2.0|2|218	"temperatura acqua Ingresso Circuito 1" / water temperature Circuit 1 input	/ UNITS "C x10"
+1.3.6.1.4.1.9839.2.1.2.3.0|2|0		"temperatura acqua Ingresso Circuito 2" / water temperature Circuit 2 input	/ UNITS "C x10"
 1.3.6.1.4.1.9839.2.1.2.4.0|2|0
 1.3.6.1.4.1.9839.2.1.2.5.0|2|0
 1.3.6.1.4.1.9839.2.1.2.6.0|2|0
 1.3.6.1.4.1.9839.2.1.2.7.0|2|0
 1.3.6.1.4.1.9839.2.1.2.8.0|2|0
-1.3.6.1.4.1.9839.2.1.2.9.0|2|217
+1.3.6.1.4.1.9839.2.1.2.9.0|2|217	R/W	"Setpoint temperatura aria mandata" / Supply air temperature setpoint	/ UNITS "C x10"
 1.3.6.1.4.1.9839.2.1.2.10.0|2|0
 1.3.6.1.4.1.9839.2.1.2.11.0|2|0
 1.3.6.1.4.1.9839.2.1.2.12.0|2|0
@@ -118,46 +106,58 @@ Supported devices:
 1.3.6.1.4.1.9839.2.1.2.18.0|2|0
 1.3.6.1.4.1.9839.2.1.2.19.0|2|0
 1.3.6.1.4.1.9839.2.1.2.20.0|2|0
-1.3.6.1.4.1.9839.2.1.2.21.0|2|400
-1.3.6.1.4.1.9839.2.1.2.22.0|2|220
+1.3.6.1.4.1.9839.2.1.2.21.0|2|400		R/W	"Regolazione Motocondensante su temp. aria mandata -Cut off-"
+										Condensing unit regulation on temp. supply air -Cut off
+1.3.6.1.4.1.9839.2.1.2.22.0|2|220		R/W	"Differenziale termoregolazione su temp. aria mandata"
+										Thermoregulation differential on temp. supply air
 1.3.6.1.4.1.9839.2.1.2.23.0|2|0
-1.3.6.1.4.1.9839.2.1.2.24.0|2|25
-1.3.6.1.4.1.9839.2.1.2.25.0|2|50
-1.3.6.1.4.1.9839.2.1.2.26.0|2|100
-1.3.6.1.4.1.9839.2.1.2.27.0|2|217
-1.3.6.1.4.1.9839.2.1.2.28.0|2|225
-1.3.6.1.4.1.9839.2.1.2.29.0|2|249
+1.3.6.1.4.1.9839.2.1.2.24.0|2|25		"temperatura evaporazione EVD EVO"
+1.3.6.1.4.1.9839.2.1.2.25.0|2|50		"Pressione evaporazione EVD EVO"
+1.3.6.1.4.1.9839.2.1.2.26.0|2|100		"Surriscaldamento Aspirazione EVD EVO"
+1.3.6.1.4.1.9839.2.1.2.27.0|2|217		"Surriscaldamento Scarico EVD EVO"
+1.3.6.1.4.1.9839.2.1.2.28.0|2|225		"temperatura Scarico EVD EVO" / EVD EVO Exhaust temperature
+1.3.6.1.4.1.9839.2.1.2.29.0|2|249		"Pressione Condensazione EVD EVO"
 1.3.6.1.4.1.9839.2.1.2.30.0|2|0
-1.3.6.1.4.1.9839.2.1.2.31.0|2|227
-1.3.6.1.4.1.9839.2.1.2.32.0|2|546
+1.3.6.1.4.1.9839.2.1.2.31.0|2|227		"percentuale Apertura Valvola EVD EVO"
+1.3.6.1.4.1.9839.2.1.2.32.0|2|546		"temperatura Liquido EVD EVO"
 1.3.6.1.4.1.9839.2.1.2.33.0|2|24
 */
 	/* Input collection */
 	/* Water temperature IN */
+	/* FIXME: return air temp. below should be prefered, but it's empty! */
 	/* temp-acqua-in1-cb.0 = INTEGER: 218 */
 	{ "input.temperature", 0, 0.1, ".1.3.6.1.4.1.9839.2.1.2.2.0", NULL, SU_FLAG_ZEROINVALID | SU_FLAG_OK, NULL },
 	/* FIXME: can be indexed, with the above as .1 and the below as .2 */
 	/* temp-acqua-in2-cb.0 = INTEGER: 0 */
 	/* { "input.temperature", 0, 1, ".1.3.6.1.4.1.9839.2.1.2.3.0", NULL, SU_FLAG_ZEROINVALID | SU_FLAG_OK, NULL }, */
+	/* Return air temperature */
+	/* temp-aria.0 = INTEGER: 0 */
+	{ "input.temperature", 0, 0.1, ".1.3.6.1.4.1.9839.2.1.2.1.0", NULL, SU_FLAG_ZEROINVALID | SU_FLAG_OK, NULL },
 
 	/* Output collection */
 	/* Water temperature OUT */
+	/* FIXME: supply air temp. below should be prefered, but it's empty! */
 	/* temp-acqua-out-cm.0 = INTEGER: 257 */
 	{ "output.temperature", 0, 0.1, ".1.3.6.1.4.1.9839.2.1.2.4.0", NULL, SU_FLAG_ZEROINVALID | SU_FLAG_OK, NULL },
+	/* Return air temperature */
+	/* temp-mand-cb.0 = INTEGER: 0 */
+	{ "output.temperature", 0, 0.1, ".1.3.6.1.4.1.9839.2.1.2.10.0", NULL, SU_FLAG_ZEROINVALID | SU_FLAG_OK, NULL },
 
 	/* cb-set-aria-mand.0 = INTEGER: 217 */
-	/* supply air temperature Setpoint */
-	{ "output.temperature.nominal", ST_FLAG_RW, 1, ".1.3.6.1.4.1.9839.2.1.2.9.0", NULL, SU_FLAG_OK, NULL },
-
-
-	/* FIXME: output.temperature? */
-	/* setpoint-lcp.0 = INTEGER: 230 */
-	{ "unmapped.setpoint-lcp", 0, 0.1, ".1.3.6.1.4.1.9839.2.1.2.48.0", NULL, SU_FLAG_OK, NULL },
+	/* Supply air temperature Setpoint */
+	{ "output.temperature.nominal", ST_FLAG_RW, 0.1, ".1.3.6.1.4.1.9839.2.1.2.9.0", NULL, SU_FLAG_OK, NULL },
 
 	/* Alarms count:
 	 * FIXME: this should be renamed to "device.alarm.count" for genericity and agnostic processing */
-	/* al-lop-a-evd-1.0 = INTEGER: 0 */
+/*
 	{ "ups.alarms", 0, 1.0, ".1.3.6.1.4.1.9839.2.1.1.50.0", NULL, SU_FLAG_OK, NULL },
+*/
+
+	/* Commands */
+	/* Supervision On/off
+	/* on-off-sup.0 = INTEGER: 0 */
+	{ "device.on", 0, DO_ON, ".1.3.6.1.4.1.9839.2.1.1.12.0", NULL, SU_TYPE_CMD, NULL, NULL },
+	{ "device.off", 0, DO_OFF, ".1.3.6.1.4.1.9839.2.1.1.12.0", NULL, SU_TYPE_CMD, NULL, NULL },
 
 #if 0
 	/* prIndex.1 = INTEGER: 1 */
@@ -233,8 +233,7 @@ Supported devices:
 	{ "unmapped.dout-4", 0, 1, ".1.3.6.1.4.1.9839.2.1.1.10.0", NULL, SU_FLAG_OK, NULL },
 	/* dout-5.0 = INTEGER: 0 */
 	{ "unmapped.dout-5", 0, 1, ".1.3.6.1.4.1.9839.2.1.1.11.0", NULL, SU_FLAG_OK, NULL },
-	/* on-off-sup.0 = INTEGER: 0 */
-	{ "unmapped.on-off-sup", 0, 1, ".1.3.6.1.4.1.9839.2.1.1.12.0", NULL, SU_FLAG_OK, NULL },
+
 	/* qal-flux-acq-util.0 = INTEGER: 0 */
 	{ "unmapped.qal-flux-acq-util", 0, 1, ".1.3.6.1.4.1.9839.2.1.1.13.0", NULL, SU_FLAG_OK, NULL },
 	/* qal-filtro-aria-cb.0 = INTEGER: 0 */
@@ -601,8 +600,7 @@ Supported devices:
 	{ "unmapped.digitalObjects", 0, 1, ".1.3.6.1.4.1.9839.2.1.1.206.0", NULL, SU_FLAG_OK, NULL },
 	/* digitalObjects.207.0 = INTEGER: 0 */
 	{ "unmapped.digitalObjects", 0, 1, ".1.3.6.1.4.1.9839.2.1.1.207.0", NULL, SU_FLAG_OK, NULL },
-	/* temp-aria.0 = INTEGER: 0 */
-	{ "unmapped.temp-aria", 0, 1, ".1.3.6.1.4.1.9839.2.1.2.1.0", NULL, SU_FLAG_OK, NULL },
+
 	/* temp-acqua-in1-cb.0 = INTEGER: 218 */
 	{ "unmapped.temp-acqua-in1-cb", 0, 1, ".1.3.6.1.4.1.9839.2.1.2.2.0", NULL, SU_FLAG_OK, NULL },
 	/* temp-acqua-in2-cb.0 = INTEGER: 0 */
@@ -619,8 +617,6 @@ Supported devices:
 	{ "unmapped.cm-offset", 0, 1, ".1.3.6.1.4.1.9839.2.1.2.8.0", NULL, SU_FLAG_OK, NULL },
 	/* cb-set-aria-mand.0 = INTEGER: 217 */
 	{ "unmapped.cb-set-aria-mand", 0, 1, ".1.3.6.1.4.1.9839.2.1.2.9.0", NULL, SU_FLAG_OK, NULL },
-	/* temp-mand-cb.0 = INTEGER: 0 */
-	{ "unmapped.temp-mand-cb", 0, 1, ".1.3.6.1.4.1.9839.2.1.2.10.0", NULL, SU_FLAG_OK, NULL },
 
 	/* temp-aria-calc.0 = INTEGER: 0 */
 	{ "unmapped.temp-aria-calc", 0, 1, ".1.3.6.1.4.1.9839.2.1.2.11.0", NULL, SU_FLAG_OK, NULL },
@@ -1016,8 +1012,7 @@ Supported devices:
 	{ "unmapped.analogObjects", 0, 1, ".1.3.6.1.4.1.9839.2.1.2.206.0", NULL, SU_FLAG_OK, NULL },
 	/* analogObjects.207.0 = INTEGER: 0 */
 	{ "unmapped.analogObjects", 0, 1, ".1.3.6.1.4.1.9839.2.1.2.207.0", NULL, SU_FLAG_OK, NULL },
-	/* stato-macchina.0 = INTEGER: 1 */
-	{ "unmapped.stato-macchina", 0, 1, ".1.3.6.1.4.1.9839.2.1.3.1.0", NULL, SU_FLAG_OK, NULL },
+
 	/* cb-vis-ext-signal.0 = INTEGER: 0 */
 	{ "unmapped.cb-vis-ext-signal", 0, 1, ".1.3.6.1.4.1.9839.2.1.3.2.0", NULL, SU_FLAG_OK, NULL },
 	/* cm-vis-umid-aria.0 = INTEGER: 0 */
