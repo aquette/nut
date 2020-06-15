@@ -73,6 +73,7 @@
 #include "emerson-avocent-pdu-mib.h"
 #include "hpe-pdu-mib.h"
 #include "carel-bluebox-cooling-mib.h"
+#include "carel-rittal-cooling-mib.h"
 #endif /* WITH_DMFMIB */
 
 /* Address API change */
@@ -131,6 +132,7 @@ static mib2nut_info_t *mib2nut[] = {
 	&raritan_px2,		/* This struct comes from : raritan-px2-mib.c */
 	&xppc,				/* This struct comes from : xppc-mib.c */
 	&carel_bluebox_cooling,	/* This struct comes from : carel-bluebox-cooling-mib.c */
+	&carel_rittal_cooling,	/* This struct comes from : carel-rittal-cooling-mib.c */
 	/*
 	 * Prepend vendor specific MIB mappings before IETF, so that
 	 * if a device supports both IETF and vendor specific MIB,
