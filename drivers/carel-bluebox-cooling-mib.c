@@ -72,7 +72,7 @@ Supported devices:
 	/* agentRelease.0 = INTEGER: 4 */
 	{ "device.firmware", 0, 1,
 		".1.3.6.1.4.1.9839.1.1.0",
-		NULL, SU_FLAG_SEMI_STATIC | SU_FLAG_OK, &device_agent_info[0] },
+		NULL, SU_FLAG_SEMI_STATIC | SU_FLAG_OK, NULL },
 	{ "device.type", ST_FLAG_STRING, SU_INFOSIZE, NULL, "cooling",
 		SU_FLAG_STATIC | SU_FLAG_ABSENT | SU_FLAG_OK, NULL },
 
@@ -123,25 +123,25 @@ Supported devices:
 1.3.6.1.4.1.9839.2.1.2.33.0|2|24
 */
 	/* Input collection */
+	/* Water temperature OUT */
+	/* FIXME: supply air temp. below should be prefered, but it's empty! */
+	/* temp-acqua-out-cm.0 = INTEGER: 257 */
+	{ "input.temperature", 0, 0.1, ".1.3.6.1.4.1.9839.2.1.2.4.0", NULL, SU_FLAG_ZEROINVALID | SU_FLAG_OK, NULL },
+	/* Return air temperature */
+	/* temp-mand-cb.0 = INTEGER: 0 */
+	{ "input.temperature", 0, 0.1, ".1.3.6.1.4.1.9839.2.1.2.10.0", NULL, SU_FLAG_ZEROINVALID | SU_FLAG_OK, NULL },
+
+	/* Output collection */
 	/* Water temperature IN */
 	/* FIXME: return air temp. below should be prefered, but it's empty! */
 	/* temp-acqua-in1-cb.0 = INTEGER: 218 */
-	{ "input.temperature", 0, 0.1, ".1.3.6.1.4.1.9839.2.1.2.2.0", NULL, SU_FLAG_ZEROINVALID | SU_FLAG_OK, NULL },
+	{ "output.temperature", 0, 0.1, ".1.3.6.1.4.1.9839.2.1.2.2.0", NULL, SU_FLAG_ZEROINVALID | SU_FLAG_OK, NULL },
 	/* FIXME: can be indexed, with the above as .1 and the below as .2 */
 	/* temp-acqua-in2-cb.0 = INTEGER: 0 */
 	/* { "input.temperature", 0, 1, ".1.3.6.1.4.1.9839.2.1.2.3.0", NULL, SU_FLAG_ZEROINVALID | SU_FLAG_OK, NULL }, */
 	/* Return air temperature */
 	/* temp-aria.0 = INTEGER: 0 */
-	{ "input.temperature", 0, 0.1, ".1.3.6.1.4.1.9839.2.1.2.1.0", NULL, SU_FLAG_ZEROINVALID | SU_FLAG_OK, NULL },
-
-	/* Output collection */
-	/* Water temperature OUT */
-	/* FIXME: supply air temp. below should be prefered, but it's empty! */
-	/* temp-acqua-out-cm.0 = INTEGER: 257 */
-	{ "output.temperature", 0, 0.1, ".1.3.6.1.4.1.9839.2.1.2.4.0", NULL, SU_FLAG_ZEROINVALID | SU_FLAG_OK, NULL },
-	/* Return air temperature */
-	/* temp-mand-cb.0 = INTEGER: 0 */
-	{ "output.temperature", 0, 0.1, ".1.3.6.1.4.1.9839.2.1.2.10.0", NULL, SU_FLAG_ZEROINVALID | SU_FLAG_OK, NULL },
+	{ "output.temperature", 0, 0.1, ".1.3.6.1.4.1.9839.2.1.2.1.0", NULL, SU_FLAG_ZEROINVALID | SU_FLAG_OK, NULL },
 
 	/* cb-set-aria-mand.0 = INTEGER: 217 */
 	/* Supply air temperature Setpoint */
