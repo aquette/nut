@@ -1,0 +1,36 @@
+SmartNUT 
+========
+
+Nowadays, smart setups already includes the necessary communication bus (MQTT or any smart protocol), and protection means (automations).
+These smart setup only consider the smarter units (USB, even cheap, and networked units like SNMP and XML-PDC).
+As a result, many NUT limitations can be removed, to focus on drivers and event based mechanism.
+
+SmartNUT is a refreshed form-factor of NUT suited to modern integrations, like in Home Assistant or any smart setup.
+It removes the need for the server (upsd) and client (upsmon, HA Integration) layers, by connecting the drivers to a
+new and selectable communication bus (MQTT, HomeKit, ...). It also limits the drivers set to USB and networked (SNMP
+and NetXML-UPS), which are more suited to modern setups.
+
+As a result, devices supported by NUT will be exposed as MQTT, HomeKit or any other smart device, using a communication backend implemented.
+NUT UPS will thus becomes smart-things.
+
+
+
+Draft notes:
+
+The base building blocks and logic is already present in NUT, including with the logic of the defunct HAL/UPower integration. But some improvements and additions are still needed to make it real.
+
+Developments happening on:
+
+https://github.com/networkupstools/nut/tree/smartnut on NUT
+for SmartNUT Home Assistant Add-on
+
+
+
+
+
+the NUT addon could be limited to just drivers with an event based approach (plug and play this time )
+no need for upsd to get data up
+no need for upsmon protection, well addressed by an automation 
+USB drivers can be autoloaded upon pluging in
+networked ones would still need manual config, but monitoring (inotify) ups.conf to load additional drivers is doable too 
+
