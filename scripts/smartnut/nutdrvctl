@@ -1,0 +1,12 @@
+
+
+# FIXME: bashio Vs bash Vs...?
+
+# if called with -U USB: add/refresh USB (FIXME: check HA params!!)
+# 1) check env (from udev, for serial...)
+# 2) nut-scanner -u > /tmp/nut-scanner.log
+# 3) diff with /etc/nut/ups.conf.d/usb-ups.conf
+#    discard upon diff (to be completed, with block-delta diff or check for serial),
+#    keep for now...
+# 4) call upsdrvctl... -c reload-or-restart
+
