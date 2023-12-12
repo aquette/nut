@@ -14,15 +14,22 @@ As a result, devices supported by NUT will be exposed as MQTT, HomeKit or any ot
 NUT UPS will thus becomes smart-things.
 
 
-
 Draft notes:
 
-The base building blocks and logic is already present in NUT, including with the logic of the defunct HAL/UPower integration. But some improvements and additions are still needed to make it real.
+image::images/smartups.png[Initial design]
 
-Developments happening on:
+Toc
+* Usage (needed?)
+* Design
+* Implementation (& packaging)
+* Example integration (Home Assistant SmartNUT plugin)
 
-https://github.com/networkupstools/nut/tree/smartnut on NUT
-for SmartNUT Home Assistant Add-on
+
+* It is a refreshed version of the HAL integration from ~2006 :D 
+* The base building blocks and logic is already present in NUT, including with the logic of the defunct HAL/UPower integration. But some improvements and additions are still needed to make it real.
+* Developments happening on:
+** https://github.com/networkupstools/nut/tree/smartnut on NUT
+** https://github.com/networkupstools/nut/tree/addon-smartnut for SmartNUT Home Assistant Add-on
 
 
 
