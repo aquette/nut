@@ -4682,6 +4682,7 @@ AC_MSG_NOTICE([Generating templated script files whose templates might have been
 m4_foreach_w([SCRIPTFILE], [
  scripts/augeas/nutupsconf.aug
  scripts/udev/nut-usbups.rules
+ scripts/udev/smartnut-usbups.rules
  scripts/devd/nut-usb.conf
 ], [
 	AC_MSG_CHECKING([whether to generate SCRIPTFILE])

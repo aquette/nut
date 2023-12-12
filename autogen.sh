@@ -101,6 +101,7 @@ fi
 # (same for the other way around)? Anyway, dumbed down for the most trivial
 # `find` implementations out there...
 if [ ! -f scripts/udev/nut-usbups.rules.in -o \
+     ! -f scripts/udev/smartnut-usbups.rules.in -o \
      ! -f scripts/hotplug/libhid.usermap -o \
      ! -f scripts/upower/95-upower-hid.hwdb -o \
      ! -f scripts/devd/nut-usb.conf.in -o \
@@ -131,6 +132,7 @@ if [ ! -f scripts/udev/nut-usbups.rules.in -o \
 		if [ "${WITHOUT_NUT_USBINFO-}" = true ]; then
 			echo "Proceeding without NUT USB Info, be sure to not require it in configure script" >&2
 			touch scripts/udev/nut-usbups.rules.in scripts/udev/nut-usbups.rules.in.AUTOGEN_WITHOUT
+			touch scripts/udev/smartnut-usbups.rules.in scripts/udev/smartnut-usbups.rules.in.AUTOGEN_WITHOUT
 			touch scripts/devd/nut-usb.conf.in scripts/devd/nut-usb.conf.in.AUTOGEN_WITHOUT
 		else
 			echo "Aborting $0! To avoid this, please   export WITHOUT_NUT_USBINFO=true   and re-run" >&2

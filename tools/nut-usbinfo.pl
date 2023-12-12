@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 #   Current Version : 1.4
 #   Copyright (C) 2008 - 2012 dloic (loic.dardant AT gmail DOT com)
-#   Copyright (C) 2008 - 2015 Arnaud Quette <arnaud.quette@free.fr>
+#   Copyright (C) 2008 - 2023 Arnaud Quette <arnaud.quette@free.fr>
 #   Copyright (C) 2013 - 2014 Charles Lepple <clepple+nut@gmail.com>
 #   Copyright (C) 2014 - 2023 Jim Klimov <jimklimov+nut@gmail.com>
 #
@@ -49,6 +49,9 @@ my $outputHotplug="$TOP_BUILDDIR/scripts/hotplug/libhid.usermap";
 
 # udev output file
 my $outputUdev="$TOP_BUILDDIR/scripts/udev/nut-usbups.rules.in";
+
+# SmartNUT udev output file
+my $outputSmartNUTUdev="$TOP_BUILDDIR/scripts/udev/smartnut-usbups.rules.in";
 
 # BSD devd output file
 my $output_devd="$TOP_BUILDDIR/scripts/devd/nut-usb.conf.in";
@@ -115,6 +118,16 @@ sub gen_usb_files
 	print $outUdev 'SUBSYSTEM=="usb", GOTO="nut-usbups_rules_real"'."\n";
 	print $outUdev 'GOTO="nut-usbups_rules_end"'."\n\n";
 	print $outUdev 'LABEL="nut-usbups_rules_real"'."\n";
+
+	# SmartNUT Udev file header (similar to udev, to be consolidated)
+	my $outSmartNUTUdev = do {local *OUT_SMARTNUTUDEV};
+	open $outSmartNUTUdev, ">$outputSmartNUTUdev" || die "error $outputSmartNUTUdev : $!";
+	print $outSmartNUTUdev '# This file is generated and installed by the Network UPS Tools - SmartNUT package.'."\n\n";
+	print $outSmartNUTUdev 'ACTION=="remove", GOTO="smartnut-usbups_rules_end"'."\n";
+	print $outSmartNUTUdev 'SUBSYSTEM=="usb_device", GOTO="smartnut-usbups_rules_real"'."\n";
+	print $outSmartNUTUdev 'SUBSYSTEM=="usb", GOTO="smartnut-usbups_rules_real"'."\n";
+	print $outSmartNUTUdev 'GOTO="smartnut-usbups_rules_end"'."\n\n";
+	print $outSmartNUTUdev 'LABEL="smartnut-usbups_rules_real"'."\n";
 
 	my $out_devd = do {local *OUT_DEVD};
 	open $out_devd, ">$output_devd" || die "error $output_devd : $!";
@@ -189,6 +202,7 @@ sub gen_usb_files
 		# udev vendor header
 		if ($vendorName{$vendorId}) {
 			print $outUdev "\n# ".$vendorName{$vendorId}."\n";
+			print $outSmartNUTUdev "\n# ".$vendorName{$vendorId}."\n";
 		}
 
 		# devd vendor header
@@ -216,6 +230,13 @@ sub gen_usb_files
 			print $outUdev "ATTR{idVendor}==\"".removeHexPrefix($vendorId);
 			print $outUdev "\", ATTR{idProduct}==\"".removeHexPrefix($productId)."\",";
 			print $outUdev ' MODE="664", GROUP="@RUN_AS_GROUP@"'."\n";
+
+			# SmartNUT udev device entry
+			print $outSmartNUTUdev "# ".$vendor{$vendorId}{$productId}{"comment"}.' - '.$vendor{$vendorId}{$productId}{"drivers"}."\n";
+			print $outSmartNUTUdev "ATTR{idVendor}==\"".removeHexPrefix($vendorId);
+			print $outSmartNUTUdev "\", ATTR{idProduct}==\"".removeHexPrefix($productId)."\",";
+			# FIXME: what to call? for now, PH
+			print $outSmartNUTUdev ' MODE="664", GROUP="@RUN_AS_GROUP@"'.", RUN+=\"FIXME...nutdrvctl...FIXME\"\n";
 
 			# devd device entry
 			print $out_devd "# ".$vendor{$vendorId}{$productId}{"comment"}.' - '.$vendor{$vendorId}{$productId}{"drivers"}."\n";
@@ -272,6 +293,9 @@ sub gen_usb_files
 	}
 	# Udev footer
 	print $outUdev "\n".'LABEL="nut-usbups_rules_end"'."\n";
+
+	# SmartNUTUdev footer
+	print $outSmartNUTUdev "\n".'LABEL="smartnut-usbups_rules_end"'."\n";
 
 	# Device scanner footer
 	print $outDevScanner "\n\t/* Terminating entry */\n\t{ 0, 0, NULL, NULL }\n};\n#endif /* DEVSCAN_USB_H */\n\n";
