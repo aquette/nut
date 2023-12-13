@@ -128,6 +128,18 @@ compatibility of the driver behavior, until communications fail with a
 driver has many data points to send in a burst, and the server can not
 handle that quickly enough so the buffer fills up.
 
+*dstate_backend*::
+
+Optional.  The drivers use by default the classic NUT communication
+(Unix socket or Windows pipe) to communicate with upsd. By enabling this
+option, the driver will use the provided communication backend to announce
+itself and publish its data.
++.
+The value must be matching the <name> in "libnutdrv_<name>.so".
+For example: libnutdrv_classic.so, libnutdrv_mqtt.so, libnutdrv_homebridge.so
++
+The default value is "classic".
+
 *user*::
 
 Optional.  Overrides the compiled-in default unprivileged username for
@@ -258,6 +270,11 @@ They would not be actively killed by `upsdrvctl` after this timeout expires.
 The default is 45 seconds.
 
 *synchronous*::
+
+Optional.  Same as the global directive of the same name, but this is
+for a specific device.
+
+*dstate_backend*::
 
 Optional.  Same as the global directive of the same name, but this is
 for a specific device.
