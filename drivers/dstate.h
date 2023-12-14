@@ -1,8 +1,8 @@
-/* dstate.h - Network UPS Tools driver-side state management
+/* dstate.h - Network UPS Tools driver-side state management interface
 
    Copyright (C)
 	2003	Russell Kroll <rkroll@exploits.org>
-	2012-2017	Arnaud Quette <arnaud.quette@free.fr>
+	2012-2023	Arnaud Quette <arnaud.quette@free.fr>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -62,6 +62,11 @@ typedef struct conn_s {
 	 * Defaults to nonblocking, for backward compatibility */
 	extern	int	do_synchronous;
 
+
+/* Load the requested .so library */
+void dstate_backend_init(const char *dstate_backend);
+
+/* Legacy interface */
 char * dstate_init(const char *prog, const char *devname);
 int dstate_poll_fds(struct timeval timeout, TYPE_FD extrafd);
 int dstate_setinfo(const char *var, const char *fmt, ...)

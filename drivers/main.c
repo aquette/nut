@@ -2,7 +2,7 @@
 
    Copyright (C)
    1999			Russell Kroll <rkroll@exploits.org>
-   2005 - 2017	Arnaud Quette <arnaud.quette@free.fr>
+   2005 - 2023	Arnaud Quette <arnaud.quette@free.fr>
    2017 		Eaton (author: Emilien Kia <EmilienKia@Eaton.com>)
    2017 - 2022	Jim Klimov <jimklimov+nut@gmail.com>
 
@@ -39,6 +39,7 @@
 TYPE_FD	upsfd = ERROR_FD;
 
 char		*device_path = NULL;
+char		*dstate_backend = NULL;
 const char	*progname = NULL, *upsname = NULL, *device_name = NULL;
 
 /* may be set by the driver to wake up while in dstate_poll_fds */
@@ -1122,6 +1123,15 @@ static void do_global_args(const char *var, const char *val)
 		return;
 	}
 
+	/* Allow global setting of the communication backend */
+	if (!strcmp(var, "dstate_backend")) {
+		if (testinfo_reloadable(var, "driver.parameter.dstate_backend", val, 0) > 0) {
+			free(dstate_backend);
+			dstate_backend = xstrdup(val);
+		}
+		return;
+	}
+
 	/* Allow to specify its minimal debugging level for all drivers -
 	 * admins can set more with command-line args, but can't set
 	 * less without changing config. Should help debug of services.
@@ -1619,6 +1629,10 @@ int main(int argc, char **argv)
 	/* init verbosity from default in common.c (0 probably) */
 	nut_debug_level_args = nut_debug_level;
 
+	/* Initialize dstate_backend */
+	dstate_backend_init(dstate_backend);
+
+	/* FIXME: use systemd or other backends */
 	dstate_setinfo("driver.state", "init.starting");
 
 	atexit(exit_cleanup);
@@ -2378,6 +2392,9 @@ sockname_ownership_finished:
 	/* The synchronous option may have been changed from the default */
 	dstate_setinfo("driver.parameter.synchronous", "%s",
 		(do_synchronous==1)?"yes":((do_synchronous==0)?"no":"auto"));
+
+	/* The dstate_backend may have been changed from the default */
+	dstate_setinfo("driver.parameter.dstate_backend", "%s", dstate_backend);
 
 	/* remap the device.* info from ups.* for the transition period */
 	if (dstate_getinfo("ups.mfr") != NULL)

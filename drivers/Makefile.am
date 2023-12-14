@@ -365,6 +365,9 @@ dist_noinst_HEADERS = apc-mib.h apc-iem-mib.h apc-hid.h arduino-hid.h baytech-mi
  eaton-pdu-pulizzi-mib.h eaton-pdu-revelation-mib.h emerson-avocent-pdu-mib.h eaton-ups-pwnm2-mib.h eaton-ups-pxg-mib.h legrand-hid.h \
  hpe-pdu-mib.h hpe-pdu3-cis-mib.h powervar-hid.h delta_ups-hid.h generic_modbus.h salicru-hid.h adelsystem_cbi.h eaton-pdu-nlogic-mib.h
 
+# Define the dstate_backend
+#libnutdrv_classic_la_SOURCES = dstate-classic.c
+
 # Define a dummy library so that Automake builds rules for the
 # corresponding object files.  This library is not actually built,
 # as a final product. It was necessary for Automake-technical reasons,
@@ -372,7 +375,7 @@ dist_noinst_HEADERS = apc-mib.h apc-iem-mib.h apc-hid.h arduino-hid.h baytech-mi
 # for object files. This library is used during the build process,
 # and is not meant to be installed.
 EXTRA_LTLIBRARIES = libdummy.la libdummy_serial.la libdummy_upsdrvquery.la
-libdummy_la_SOURCES = main.c dstate.c
+libdummy_la_SOURCES = main.c dstate-classic.c
 libdummy_la_LDFLAGS = -no-undefined -static
 libdummy_serial_la_SOURCES = serial.c
 libdummy_serial_la_LDFLAGS = -no-undefined -static
@@ -383,7 +386,7 @@ libdummy_upsdrvquery_la_LDFLAGS = -no-undefined -static
 # with near-production codebase but without its standard main().
 # Otherwise, also not meant to be installed.
 EXTRA_LTLIBRARIES += libdummy_mockdrv.la
-libdummy_mockdrv_la_SOURCES = main.c dstate.c
+libdummy_mockdrv_la_SOURCES = main.c dstate-classic.c
 libdummy_mockdrv_la_CFLAGS = $(AM_CFLAGS) -DDRIVERS_MAIN_WITHOUT_MAIN=1
 libdummy_mockdrv_la_LDFLAGS = -static $(top_builddir)/common/libcommon.la $(top_builddir)/common/libparseconf.la
 

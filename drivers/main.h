@@ -28,6 +28,8 @@ void upsdrv_cleanup(void);	/* free any resources before shutdown */
 
 void set_exit_flag(int sig);
 
+void dstate_backend_init(const char *dstate_backend);
+
 /* --- details for the variable/value sharing --- */
 
 /* handle instant commands common for all drivers
