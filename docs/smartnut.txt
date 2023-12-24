@@ -13,6 +13,10 @@ and NetXML-UPS), which are more suited to modern setups.
 As a result, devices supported by NUT will be exposed as MQTT, HomeKit or any other smart device, using a communication backend implemented.
 NUT UPS will thus becomes smart-things.
 
+Implementation:
+
+* config and services start (driver(s), adapter): https://github.com/aquette/addon-smartnut/blob/main/smartnut/rootfs/etc/cont-init.d/smartnut.sh
+* Adapter (convert NUT dstate into MQTT): https://github.com/aquette/addon-smartnut/blob/main/smartnut/rootfs/usr/bin/dstate-nut2mqtt
 
 Draft notes:
 
